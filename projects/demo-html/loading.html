@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <h1>会议大厅</h1>
+  <div class="loading">
+    <div class="loading-content">
+      <label>连接会议...</label>
+      <div class="loading-points">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .loading {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      background: rgba(255, 255, 255, 0.5);
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+
+    .loading .loading-content {
+      text-align: center;
+    }
+
+    .loading .loading-content label {
+      font-size: 20px;
+    }
+
+    .loading .loading-content .loading-points {
+      margin-top: 10px;
+    }
+
+    .loading span {
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      margin-right: 20px;
+      border-radius: 50%;
+      background: #2196f3;
+      -webkit-animation: load 1.04s ease infinite;
+    }
+
+    .loading span:last-child {
+      margin-right: 0px;
+    }
+
+    @-webkit-keyframes load {
+      0% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    .loading span:nth-child(1) {
+      -webkit-animation-delay: 0.13s;
+    }
+
+    .loading span:nth-child(2) {
+      -webkit-animation-delay: 0.26s;
+    }
+
+    .loading span:nth-child(3) {
+      -webkit-animation-delay: 0.39s;
+    }
+
+    .loading span:nth-child(4) {
+      -webkit-animation-delay: 0.52s;
+    }
+
+    .loading span:nth-child(5) {
+      -webkit-animation-delay: 0.65s;
+    }
+  </style>
+</body>
+
+</html>

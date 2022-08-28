@@ -1,0 +1,21 @@
+{
+  "source": "./contents",
+  "metadata": {
+    "title": "My Wintersmith-Powered Blog",
+    "description": "My second, super-cool, Wintersmith-powered blog."
+  },
+  "plugins": [
+    {
+      "metalsmith-collections": {
+        "posts": "*-post.md"
+      }
+    },
+    { "@metalsmith/markdown": {} },
+    { "@metalsmith/permalinks": {} },
+    {
+      "metalsmith-layouts": {
+        "directory": "./templates"
+      }
+    }
+  ]
+}

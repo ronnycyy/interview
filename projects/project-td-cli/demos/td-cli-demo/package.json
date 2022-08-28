@@ -1,0 +1,36 @@
+{
+  "name": "td-cli-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "td": "bin/td.js"
+  },
+  "scripts": {
+    "start": "node bin/td.js",
+    "server": "nodemon server/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@koa/router": "^12.0.0",
+    "async": "^3.2.4",
+    "chalk": "2.4.2",
+    "commander": "^9.4.0",
+    "consolidate": "0.14.0",
+    "download-git-repo": "^3.0.2",
+    "express": "^4.18.1",
+    "handlebars": "4.0.5",
+    "inquirer": "6.0.0",
+    "koa": "^2.13.4",
+    "koa-send": "^5.0.1",
+    "log4js": "^6.6.1",
+    "metalsmith": "^2.5.0",
+    "nodemon": "^2.0.19",
+    "ora": "1.3.0",
+    "request": "2.67.0",
+    "rimraf": "^3.0.2",
+    "user-home": "^3.0.0"
+  }
+}

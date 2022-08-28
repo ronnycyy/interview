@@ -1,0 +1,19 @@
+{
+  "name": "wintersmith-example",
+  "private": true,
+  "dependencies": {
+    "jstransformer-pug": "^0.4.0",
+    "metalsmith": "^2.5.0",
+    "@metalsmith/collections": "^1.2.1",
+    "@metalsmith/layouts": "^2.5.1",
+    "@metalsmith/markdown": "^1.5.0",
+    "@metalsmith/permalinks": "^2.3.0"
+  },
+  "devDependencies": {
+    "serve": "^11.3.2"
+  },
+  "scripts": {
+    "start": "metalsmith",
+    "serve": "serve build"
+  }
+}

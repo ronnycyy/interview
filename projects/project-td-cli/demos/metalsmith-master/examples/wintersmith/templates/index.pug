@@ -1,0 +1,15 @@
+doctype html
+html
+  head
+    title= title
+    meta(charset= 'utf-8')
+    meta(name= 'viewport' content= 'device-width, initial-scale=1.0')
+    meta(name= 'description', content= description)
+    meta(name= 'generator' content= 'metalsmith')
+  body
+    h1= title
+    p= description
+    ul
+      each post in posts
+        li
+          a(href='/' + post.path)= post.title

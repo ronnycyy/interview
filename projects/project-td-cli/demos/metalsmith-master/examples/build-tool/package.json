@@ -1,0 +1,11 @@
+{
+  "name": "build-tool-example",
+  "private": true,
+  "dependencies": {
+    "myth": "^1.5.0",
+    "metalsmith": "^2.5.0"
+  },
+  "scripts": {
+    "start": "node build.js"
+  }
+}

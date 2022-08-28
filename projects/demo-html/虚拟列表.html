@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    #container {
+      height: 300px;
+      overflow: auto;
+    }
+
+    #foo {
+      height: 1000px;
+      width: 1000px;
+      background-color: #777;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container">
+    <div id="foo">长列表</div>
+  </div>
+
+  <script type="text/javascript">
+    document.getElementById("container").addEventListener('scroll', (e) => {
+      console.log(`scrollTop: ${e.target.scrollTop}`);
+    }, false)
+  </script>
+</body>
+
+</html>
