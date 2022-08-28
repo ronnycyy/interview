@@ -6,7 +6,7 @@ const HeaderContent = () => {
 
   return (
     <div id={HEADER_ID}>
-      <h1>Power Workflow</h1>
+      <h1>会场设计器</h1>
     </div>
   )
 }
