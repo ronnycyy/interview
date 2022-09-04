@@ -1,4 +1,4 @@
-/* 基于「FORM-DATA」单文件上传 */
+/* 单文件上传 「FORM-DATA」 */
 (function () {
 	// 容器
 	const uploadContainer = document.querySelector('#upload1');
@@ -132,7 +132,7 @@
 	}
 })();
 
-/* 基于「BASE64」单文件上传 */
+/* 单文件上传 「BASE64」 */
 (function () {
 	// 容器
 	const uploadContainer = document.querySelector('#upload2');
@@ -378,7 +378,7 @@
 	}
 })();
 
-/* 单一文件上传「进度管控」 */
+/* 进度管控 */
 (function () {
 	// 容器
 	const uploadContainer = document.querySelector('#upload4');
@@ -443,6 +443,117 @@
 
 	}, false);
 
+})();
+
+/* 多文件上传 */
+(function () {
+	// 容器
+	const uploadContainer = document.querySelector('#upload5');
+	// 选择文件的 input 框
+	const uploadInput = uploadContainer.querySelector('.upload_inp');
+	// `选择文件`按钮
+	const uploadSelect = uploadContainer.querySelector('.upload_button.select');
+	// `上传到服务器`按钮
+	const uploadButton = uploadContainer.querySelector('.upload_button.upload');
+	// 提示信息
+	const uploadTip = uploadContainer.querySelector('.upload_tip');
+	// 已选中的文件信息
+	const uploadList = uploadContainer.querySelector('.upload_list');
+	// 已使用的 key
+	const keys = [];
+	// 已选文件
+	let _files = [];
+
+	// 监听`移除文件`事件
+	uploadList.addEventListener('click', function (ev) {
+		const target = ev.target;
+		let curLi = null;
+
+		if (!target) {
+			return;
+		}
+
+		if (target.tagName === 'EM') {
+			curLi = target.parentNode.parentNode;
+			if (!curLi) {
+				return;
+			}
+			uploadList.removeChild(curLi);
+			_files = _files.filter(f => f.key !== curLi.getAttribute('key'));
+			if (_files.length === 0) {
+				uploadList.style.display = 'none';
+			}
+		}
+	}, false);
+
+	// 监听`选择文件`按钮的点击事件
+	uploadSelect.addEventListener('click', function (e) {
+		if (uploadSelect.classList.contains('disable')) {
+			return;
+		}
+		uploadInput.click();
+	}, false);
+
+	// 监听`得到文件`事件
+	uploadInput.addEventListener('change', async function () {
+		_files = Array.from(uploadInput.files);
+		if (_files.length === 0) {
+			return;
+		}
+
+		_files = _files.map(f => {
+			return {
+				file: f,
+				filename: f.name,
+				key: createRandom()
+			}
+		})
+		console.log(_files);
+
+		let str = ``;
+		_files.forEach((item, index) => {
+			str += `<li key="${item.key}"><span>文件${index + 1}：${item.filename}</span><span><em>移除</em></span></li>`
+		});
+		uploadList.innerHTML = str;
+		uploadList.style.display = 'block';
+	}, false);
+
+	// 监听`上传到服务器`事件
+	uploadButton.addEventListener('click', async function () {
+		if (uploadButton.classList.contains('loading')) {
+			return;
+		}
+		if (_files.length === 0) {
+			alert('未选择任何文件!');
+			return;
+		}
+		handleDisable(true);
+
+		// TODO: 上传文件，展示每个文件的上传进度
+
+		handleDisable(false);
+	}, false);
+
+	// 生成列表项的唯一值
+	function createRandom() {
+		const getRan = () => Math.random() * Date.now();
+		let ran = getRan();
+		while (keys.includes(ran)) {
+			ran = getRan();
+		}
+		keys.push(ran);
+		return ran.toString(16).replace('.', '');
+	}
+	// 按钮是否处于不可操作状态 (比如，正在上传文件...)
+	function handleDisable(isDisable) {
+		if (isDisable) {
+			uploadButton.classList.add('loading');
+			uploadSelect.classList.add('disable');
+			return;
+		}
+		uploadSelect.classList.remove('disable');
+		uploadButton.classList.remove('loading');
+	}
 })();
 
 // 延迟函数
