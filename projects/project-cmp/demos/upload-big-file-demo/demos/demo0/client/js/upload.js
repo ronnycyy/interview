@@ -529,7 +529,25 @@
 		}
 		handleDisable(true);
 
-		// TODO: 上传文件，展示每个文件的上传进度
+		const lis = Array.from(uploadList.querySelectorAll('li'));
+		_files = _files.map(f => {
+			const fd = new FormData();
+			fd.append('file', f.file);
+			fd.append('filename', f.filename);
+			return instance.post('/upload_single', fd, {
+				onUploadProgress(ev) {
+					const progress = `${(ev.load / ev.total * 100).toFixed(2)}%`;
+				}
+			}).then(data => {
+				if (+data.code === 0) {
+					return;
+				}
+				return Promise.reject();
+			})
+		});
+
+		// 全部成功才成功，有一个失败就失败。
+		Promise.all(_files);
 
 		handleDisable(false);
 	}, false);
@@ -554,6 +572,167 @@
 		uploadSelect.classList.remove('disable');
 		uploadButton.classList.remove('loading');
 	}
+})();
+
+/* 大文件上传 */
+(function () {
+	// 容器
+	const uploadContainer = document.querySelector('#upload7');
+	// 选择文件的 input 框
+	const uploadInput = uploadContainer.querySelector('.upload_inp');
+	// `选择文件`按钮
+	const uploadSelect = uploadContainer.querySelector('.upload_button.select');
+	// `进度`盒子
+	const uploadProgress = uploadContainer.querySelector('.upload_progress');
+	// `进度条`
+	const uploadProgressValue = uploadProgress.querySelector('.value');
+
+	// 监听`选择文件`按钮的点击事件
+	uploadSelect.addEventListener('click', function (e) {
+		if (uploadSelect.classList.contains('disable')) {
+			return;
+		}
+		uploadInput.click();
+	}, false);
+
+	// 监听`得到文件`事件
+	uploadInput.addEventListener('change', async function () {
+		const file = uploadInput.files[0];
+		if (!file) {
+			return;
+		}
+
+		uploadSelect.classList.add('loading');
+		uploadProgress.style.display = 'block';
+
+		// 1.询问。询问服务器已上传了哪些分片。
+		const { HASH, suffix } = await fileToBuffer(file);  // 通过内容哈希请求服务器查找
+		let already = [];
+		try {
+			const data = await instance.get('/upload_already', {
+				params: {
+					HASH
+				}
+			});
+			if (+data.code === 0) {
+				already = data.fileList;
+			}
+			else {
+				throw data.codeText;
+			}
+		} catch (err) { }
+
+		// 2.切片。文件切片。
+		let max = 100 * 1024;
+		let count = Math.ceil(file.size / max);
+		let index = 0;
+		const chunks = [];
+		if (count > 100) {
+			count = 100;
+			max = file.size / count;
+		}
+		while (index < count) {
+			chunks.push({
+				file: file.slice(index * max, (index + 1) * max),
+				filename: `${HASH}_${index + 1}.${suffix}`
+			})
+			index++;
+		}
+
+		// 3.传输。过滤出没有上传过的分片，把这些分片上传到服务器。
+		chunks.forEach(c => {
+			if (already.includes(c.filename)) {
+				oneChunkDone();  // 已上传过，该分片上传完成，不用再上传了。
+				return;
+			}
+			const fd = new FormData();
+			fd.append('file', c.file);
+			fd.append('filename', c.filename);
+			instance
+				.post('/upload_chunk', fd)
+				.then(data => {
+					if (+data.code === 0) {
+						oneChunkDone();   // 分片上传成功
+						return;
+					}
+					return Promise.reject(data.codeText);
+				})
+				.catch(reason => {
+					console.error(reason);  // 某个分片上传失败
+					clear();
+				})
+		})
+
+		let finishedIndex = 0;  // 记录多少个分片已经上传成功
+
+		function oneChunkDone() {
+			// 当前切片成功
+			finishedIndex++;
+			// 传了百分之几，展示进度
+			uploadProgressValue.style.width = `${finishedIndex / count * 100}%`;
+			if (finishedIndex < count) {
+				return;
+			}
+			uploadProgressValue.style.width = '100%';
+			// 所有切片都成功时，发送合并请求
+			merge();
+		}
+
+		// 4. 合并
+		async function merge() {
+			// 向服务器发送合并请求
+			try {
+				const data = await instance.post('/upload_merge', {
+					HASH,   // 完整大文件的 HASH 
+					count   // 总分片数量
+				}, {
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded'   // key1=value1&key2=value2
+					}
+				});
+				if (+data.code === 0) {
+					console.log('合并成功:', data.servicePath);
+					return;
+				}
+				throw data.codeText;
+			} catch (err) {
+				alert('合并失败!');
+			} finally {
+				clear();
+			}
+		}
+
+		function clear() {
+			uploadSelect.classList.remove('loading');
+			uploadProgress.style.display = 'none';
+			uploadProgressValue.style.width = '0%';
+		}
+
+	}, false);
+
+	function fileToBuffer(file) {
+		return new Promise((resolve, reject) => {
+			const fr = new FileReader();
+			fr.onload = function (ev) {
+				const buffer = ev.target.result;
+				const spark = new SparkMD5.ArrayBuffer();
+				spark.append(buffer);
+				const hash = spark.end();
+				const suffix = /\.([a-zA-Z0-9]+)$/.exec(file.name)[1];
+				resolve({
+					buffer: buffer,
+					HASH: hash,
+					suffix: suffix,
+					filename: `${hash}.${suffix}`
+				});
+			}
+			fr.onerror = function (err) {
+				reject(err);
+			}
+			fr.readAsArrayBuffer(file);
+		});
+	}
+
 })();
 
 // 延迟函数
