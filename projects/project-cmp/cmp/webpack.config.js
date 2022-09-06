@@ -56,17 +56,61 @@ const webpackconfig = {
       },
       {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
-        use: {
-          loader: 'url-loader'
-        }
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              name: '[name]_[contenthash].[ext]',
+              limit: 5 * 1024,
+              outputpath: 'static/images/'
+            }
+          },
+          {
+            loader: 'image-webpack-loader',
+            options: {
+              mozjpeg: {
+                progressive: true,
+              },
+              optipng: {
+                enabled: false,
+              },
+              pngquant: {
+                quality: [0.65, 0.90],
+                speed: 4
+              },
+              gifsicle: {
+                interlaced: false,
+              },
+              webp: {
+                quality: 75
+              }
+            }
+          }
+        ]
       },
     ]
   },
   plugins: [
     new CheckerPlugin(),
     new HtmlWebpackPlugin({
-      filename: 'index.html',
-      template: './index.html'
+      // 使用开发者自定义的模板
+      template: path.resolve(__dirname, 'index.html'),
+      // 引入所有资源，JS 引入到 body 标签底部，CSS 引入到 head 底部
+      inject: true,
+      minify: {
+        // 按 HTML5 规范解析输入资源
+        html5: true,
+        // 去掉空格
+        collapseWhitespace: true,
+        // 去掉换行符
+        preserveLineBreaks: false,
+        // 压缩在 style 标签或者 style 属性中的 css 代码
+        minifyCSS: true,
+        // 压缩在 script 标签或事件属性（如 onclick）里的 js 代码
+        minifyJS: true,
+        // 移除注释
+        removeComments: true
+      }
     })
   ]
 }
