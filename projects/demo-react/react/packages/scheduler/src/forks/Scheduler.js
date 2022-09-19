@@ -18,7 +18,7 @@ import {
   maxYieldMs,
 } from '../SchedulerFeatureFlags';
 
-import {push, pop, peek} from '../SchedulerMinHeap';
+import { push, pop, peek } from '../SchedulerMinHeap';
 
 // TODO: Use symbols?
 import {
@@ -96,13 +96,14 @@ const localSetImmediate =
 
 const isInputPending =
   typeof navigator !== 'undefined' &&
-  navigator.scheduling !== undefined &&
-  navigator.scheduling.isInputPending !== undefined
+    navigator.scheduling !== undefined &&
+    navigator.scheduling.isInputPending !== undefined
     ? navigator.scheduling.isInputPending.bind(navigator.scheduling)
     : null;
 
-const continuousOptions = {includeContinuous: enableIsInputPendingContinuous};
+const continuousOptions = { includeContinuous: enableIsInputPendingContinuous };
 
+// 弹出 timerQueue 中所有过期任务，加入到 taskQueue。
 function advanceTimers(currentTime) {
   // Check for tasks that are no longer delayed and add them to the queue.
   let timer = peek(timerQueue);
@@ -127,6 +128,8 @@ function advanceTimers(currentTime) {
   }
 }
 
+// 把 timerQueue 的所有过期任务，弹出到 taskQueue 中。
+// 执行 taskQueue 最早过期的任务。
 function handleTimeout(currentTime) {
   isHostTimeoutScheduled = false;
   advanceTimers(currentTime);
@@ -243,7 +246,16 @@ function workLoop(hasTimeRemaining, initialTime) {
   }
 }
 
+/**
+ * 这个函数接收 2 个参数，第一个是 Scheduler 优先级的等级，第二个是一个回调函数。 by ronny
+ */
 function unstable_runWithPriority(priorityLevel, eventHandler) {
+  // Scheduler 有 5 种优先级:
+  // 1.立即执行 
+  // 2.用户交互
+  // 3.普通优先级
+  // 4.低优先级
+  // 5.空闲优先级
   switch (priorityLevel) {
     case ImmediatePriority:
     case UserBlockingPriority:
@@ -254,11 +266,14 @@ function unstable_runWithPriority(priorityLevel, eventHandler) {
     default:
       priorityLevel = NormalPriority;
   }
-
+  // 保存之前的优先级
   var previousPriorityLevel = currentPriorityLevel;
+  // 更新当前优先级
   currentPriorityLevel = priorityLevel;
 
+  // 用当前优先级执行回调，执行完毕后，恢复之前的优先级
   try {
+    // 外部回调执行过程，随时通过本包暴露的 unstable_getCurrentPriorityLevel 方法，获取当前优先级
     return eventHandler();
   } finally {
     currentPriorityLevel = previousPriorityLevel;
@@ -292,7 +307,7 @@ function unstable_next(eventHandler) {
 
 function unstable_wrapCallback(callback) {
   var parentPriorityLevel = currentPriorityLevel;
-  return function() {
+  return function () {
     // This is a fork of runWithPriority, inlined for performance.
     var previousPriorityLevel = currentPriorityLevel;
     currentPriorityLevel = parentPriorityLevel;
@@ -305,9 +320,19 @@ function unstable_wrapCallback(callback) {
   };
 }
 
+/**
+ * 调度一个回调函数。  by ronny
+ * 
+ * 该方法接收 3 个参数:
+ * 1.Scheduler的优先级
+ * 2.回调函数
+ * 3.配置项
+ */
 function unstable_scheduleCallback(priorityLevel, callback, options) {
+  // 获取当前时间
   var currentTime = getCurrentTime();
 
+  // 如果配置项加了延迟，那么开始时间等于当前时间加延迟，否则开始时间就是当前时间。
   var startTime;
   if (typeof options === 'object' && options !== null) {
     var delay = options.delay;
@@ -320,6 +345,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
     startTime = currentTime;
   }
 
+  // 根据不同的Scheduler优先级，得到不同的超时时延，优先级越低，timeout越大。
   var timeout;
   switch (priorityLevel) {
     case ImmediatePriority:
@@ -340,8 +366,11 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
       break;
   }
 
+  // 当前任务的过期时间，就是开始时间+超时时延
+  // 比如，对于同步任务，timeout是-1，那么过期时间就是当前时间-1，也就是已经过期，马上执行。
   var expirationTime = startTime + timeout;
 
+  // React 可能在同一时刻调度大量的不同优先级的回调函数，这些回调函数在 Scheduler 里就是任务，每个任务都会有过期时间(expirationTime)
   var newTask = {
     id: taskIdCounter++,
     callback,
@@ -354,11 +383,16 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
     newTask.isQueued = false;
   }
 
+  // 如果新任务未过期，放入 timerQueue, 如果已过期，放入 taskQueue。
+
   if (startTime > currentTime) {
-    // This is a delayed task.
+    // 注册一个未过期的任务，把它插入到 timerQueue 中，timerQueue 是一个小根堆，插入以后，再次调整成小根堆的形态，保证堆顶最小。
+    // 把开始时间作为小根堆的判断依据。
     newTask.sortIndex = startTime;
+    // 小根堆的 heapInsert，从下往上窜。
     push(timerQueue, newTask);
     if (peek(taskQueue) === null && newTask === peek(timerQueue)) {
+      // 如果没有已过期的任务，并且此刻的新任务，就是未过期任务里最早过期的。
       // All tasks are delayed, and this is the task with the earliest delay.
       if (isHostTimeoutScheduled) {
         // Cancel an existing timeout.
@@ -366,10 +400,15 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
       } else {
         isHostTimeoutScheduled = true;
       }
-      // Schedule a timeout.
+      // 调一个 setTimeout 的 polyfill 实现(localSetTimeout):
+      // 1. 延迟时间: 最早过期任务的开始时间-当前时间
+      // 2. 回调: 去检查 timerQueue 中所有的过期任务，将这些过期任务取出，加入 taskQueue。
+      // 也就是第一个任务要过期的时候，开始检查。
       requestHostTimeout(handleTimeout, startTime - currentTime);
     }
-  } else {
+  }
+  else {
+    // 注册一个过期的任务，放入 taskQueue 并重新调整成小根堆
     newTask.sortIndex = expirationTime;
     push(taskQueue, newTask);
     if (enableProfiling) {
@@ -380,6 +419,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
     // wait until the next time we yield.
     if (!isHostCallbackScheduled && !isPerformingWork) {
       isHostCallbackScheduled = true;
+      // 执行 taskQueue 中过期的任务
       requestHostCallback(flushWork);
     }
   }
@@ -418,6 +458,7 @@ function unstable_cancelCallback(task) {
   task.callback = null;
 }
 
+// 暴露给外面，回调执行过程中，随时获取当前优先级  by ronny
 function unstable_getCurrentPriorityLevel() {
   return currentPriorityLevel;
 }
@@ -500,7 +541,7 @@ function forceFrameRate(fps) {
     // Using console['error'] to evade Babel and ESLint
     console['error'](
       'forceFrameRate takes a positive int between 0 and 125, ' +
-        'forcing frame rates higher than 125 fps is not supported',
+      'forcing frame rates higher than 125 fps is not supported',
     );
     return;
   }
@@ -587,6 +628,7 @@ function requestHostCallback(callback) {
   }
 }
 
+// setTimeout
 function requestHostTimeout(callback, ms) {
   taskTimeoutID = localSetTimeout(() => {
     callback(getCurrentTime());
@@ -623,7 +665,7 @@ export {
 
 export const unstable_Profiling = enableProfiling
   ? {
-      startLoggingProfilingEvents,
-      stopLoggingProfilingEvents,
-    }
+    startLoggingProfilingEvents,
+    stopLoggingProfilingEvents,
+  }
   : null;

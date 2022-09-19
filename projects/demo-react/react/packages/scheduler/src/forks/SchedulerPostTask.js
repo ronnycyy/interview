@@ -7,7 +7,7 @@
  * @flow
  */
 
-import type {PriorityLevel} from '../SchedulerPriorities';
+import type { PriorityLevel } from '../SchedulerPriorities';
 
 declare class TaskController {
   constructor(priority?: string): TaskController;
@@ -77,7 +77,7 @@ type SchedulerCallback<T> = (
 export function unstable_scheduleCallback<T>(
   priorityLevel: PriorityLevel,
   callback: SchedulerCallback<T>,
-  options?: {delay?: number},
+  options?: { delay?: number },
 ): CallbackNode {
   let postTaskPriority;
   switch (priorityLevel) {
@@ -180,6 +180,7 @@ export function unstable_cancelCallback(node: CallbackNode) {
   controller.abort();
 }
 
+
 export function unstable_runWithPriority<T>(
   priorityLevel: PriorityLevel,
   callback: () => T,
@@ -234,11 +235,11 @@ export function unstable_wrapCallback<T>(callback: () => T): () => T {
   };
 }
 
-export function unstable_forceFrameRate() {}
+export function unstable_forceFrameRate() { }
 
-export function unstable_pauseExecution() {}
+export function unstable_pauseExecution() { }
 
-export function unstable_continueExecution() {}
+export function unstable_continueExecution() { }
 
 export function unstable_getFirstCallbackNode() {
   return null;

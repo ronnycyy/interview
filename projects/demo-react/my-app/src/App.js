@@ -3,11 +3,17 @@
 // import EffectFriendStatus from './components/EffectFriendStatus';
 // import ContextDemo from './components/ContextDemo';
 // import UseStateDemo from './components/useStateDemo';
-import SchedulerDemo from './components/SchedulerDemo';
+// import SchedulerDemo from './components/SchedulerDemo';
+// import BatchedUpdateDemo from './components/BatchedUpdatesDemo';
+// import Interrupt from './components/Interrupt';
+import SuspenseDemo from './components/SuspenseDemo';
 
 function App() {
   return (
-    <SchedulerDemo />
+    <SuspenseDemo />
+    // <Interrupt />
+    // <BatchedUpdateDemo />
+    // <SchedulerDemo />
     // <UseStateDemo />
     // <ContextDemo />
     // <EffectTitle />
