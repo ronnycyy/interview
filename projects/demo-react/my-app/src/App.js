@@ -6,11 +6,13 @@
 // import SchedulerDemo from './components/SchedulerDemo';
 // import BatchedUpdateDemo from './components/BatchedUpdatesDemo';
 // import Interrupt from './components/Interrupt';
-import SuspenseDemo from './components/SuspenseDemo';
+// import SuspenseDemo from './components/SuspenseDemo';
+import TransitionDemo from './components/TransitionDemo';
 
 function App() {
   return (
-    <SuspenseDemo />
+    <TransitionDemo />
+    // <SuspenseDemo />
     // <Interrupt />
     // <BatchedUpdateDemo />
     // <SchedulerDemo />

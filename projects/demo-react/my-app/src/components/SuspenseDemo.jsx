@@ -53,10 +53,6 @@ function Clock({ resource }) {
 function Button({ onClick, children }) {
   // useTransition 允许组件在切换到下一个界面之前等待内容加载，从而避免不必要的加载状态。
   // 它还允许组件将速度较慢的数据获取更新推迟到随后渲染，以便能够渲染更重要的更新。(高优任务打断低优任务)
-
-  // TODO:
-  // 1. mount时
-  // 2. update时
   const [isPending, startTransition] = useTransition();
 
   console.log('render~', isPending);
