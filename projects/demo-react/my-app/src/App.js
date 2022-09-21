@@ -7,11 +7,13 @@
 // import BatchedUpdateDemo from './components/BatchedUpdatesDemo';
 // import Interrupt from './components/Interrupt';
 // import SuspenseDemo from './components/SuspenseDemo';
-import TransitionDemo from './components/TransitionDemo';
+// import TransitionDemo from './components/TransitionDemo';
+import LazyDemo from './components/LazyDemo';
 
 function App() {
   return (
-    <TransitionDemo />
+    <LazyDemo />
+    // <TransitionDemo />
     // <SuspenseDemo />
     // <Interrupt />
     // <BatchedUpdateDemo />
