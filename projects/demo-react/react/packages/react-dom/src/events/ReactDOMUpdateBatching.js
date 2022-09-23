@@ -17,13 +17,13 @@ import {
 // scheduled work and instead do synchronous work.
 
 // Defaults
-let batchedUpdatesImpl = function(fn, bookkeeping) {
+let batchedUpdatesImpl = function (fn, bookkeeping) {
   return fn(bookkeeping);
 };
-let discreteUpdatesImpl = function(fn, a, b, c, d) {
+let discreteUpdatesImpl = function (fn, a, b, c, d) {
   return fn(a, b, c, d);
 };
-let flushSyncImpl = function() {};
+let flushSyncImpl = function () { };
 
 let isInsideEventHandler = false;
 
@@ -44,6 +44,7 @@ function finishEventHandler() {
   }
 }
 
+// 批量更新
 export function batchedUpdates(fn, a, b) {
   if (isInsideEventHandler) {
     // If we are currently inside another batch, we need to wait until it

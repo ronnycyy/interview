@@ -6,10 +6,10 @@
  * @flow
  */
 
-import type {Fiber} from 'react-reconciler/src/ReactInternalTypes';
-import type {Props} from '../client/ReactDOMHostConfig';
+import type { Fiber } from 'react-reconciler/src/ReactInternalTypes';
+import type { Props } from '../client/ReactDOMHostConfig';
 
-import {getFiberCurrentPropsFromNode} from '../client/ReactDOMComponentTree';
+import { getFiberCurrentPropsFromNode } from '../client/ReactDOMComponentTree';
 
 function isInteractive(tag: string): boolean {
   return (
@@ -44,9 +44,9 @@ function shouldPreventMouseEvent(
 }
 
 /**
- * @param {object} inst The instance, which is the source of events.
- * @param {string} registrationName Name of listener (e.g. `onClick`).
- * @return {?function} The stored callback.
+ * @param {object} inst The instance, which is the source of events.  button 这个 fiber 结点
+ * @param {string} registrationName Name of listener (e.g. `onClick`). React合成事件名，如 onClick, onClickCapture。
+ * @return {?function} The stored callback.  
  */
 export default function getListener(
   inst: Fiber,
@@ -57,6 +57,8 @@ export default function getListener(
     // Work in progress (ex: onload events in incremental mode).
     return null;
   }
+
+  // 从真实DOM上取得 button fiber 结点的 props 对象，拿到  { children: "点击", onClick: () => { console.log('click') }  }
   const props = getFiberCurrentPropsFromNode(stateNode);
   if (props === null) {
     // Work in progress.

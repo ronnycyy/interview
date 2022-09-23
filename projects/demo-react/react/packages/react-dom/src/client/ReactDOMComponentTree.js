@@ -192,6 +192,7 @@ export function getNodeFromInstance(inst: Fiber): Instance | TextInstance {
   throw new Error('getNodeFromInstance: Invalid argument.');
 }
 
+// 通过挂载的 __reactProps，从真实DOM上取得 fiber 结点的 props 对象。
 export function getFiberCurrentPropsFromNode(
   node: Instance | TextInstance | SuspenseInstance,
 ): Props {

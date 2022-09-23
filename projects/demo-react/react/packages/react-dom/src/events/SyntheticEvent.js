@@ -13,7 +13,7 @@ import assign from 'shared/assign';
 import getEventCharCode from './getEventCharCode';
 
 type EventInterfaceType = {
-  [propName: string]: 0 | ((event: {[propName: string]: mixed}) => mixed),
+  [propName: string]: 0 | ((event: { [propName: string]: mixed }) => mixed),
 };
 
 function functionThatReturnsTrue() {
@@ -24,27 +24,41 @@ function functionThatReturnsFalse() {
   return false;
 }
 
+// by ronny
 // This is intentionally a factory so that we have different returned constructors.
 // If we had a single constructor, it would be megamorphic and engines would deopt.
+// 这是一个有意的工厂函数，因此我们返回不同的构造函数。
+// 如果我们只有一个构造器，它将是巨型的，引擎也将消失。
 function createSyntheticEvent(Interface: EventInterfaceType) {
   /**
    * Synthetic events are dispatched by event plugins, typically in response to a
    * top-level event delegation handler.
+   * 合成事件由事件插件调度，通常是为了响应顶级事件委托处理程序。
    *
    * These systems should generally use pooling to reduce the frequency of garbage
    * collection. The system should check `isPersistent` to determine whether the
    * event should be released into the pool after being dispatched. Users that
    * need a persisted event should invoke `persist`.
+   * 这些系统通常应使用池来减少垃圾收集的频率。
+   * 系统应检查“isPersistent”以确定事件在调度后是否应释放到池中。
+   * 需要持久化事件的用户应调用“persistent”。
    *
    * Synthetic events (and subclasses) implement the DOM Level 3 Events API by
    * normalizing browser quirks. Subclasses do not necessarily have to implement a
    * DOM interface; custom application-specific events can also subclass this.
+   * 合成事件（和子类）通过规范化浏览器异常来实现DOM Level 3 events API。
+   * 子类不一定要实现DOM接口；自定义特定于应用程序的事件也可以将其子类化。
    */
+
+  // React合成事件类的构造函数，通过 new 来调用。
+  // 1. 转移原生Event的数据上来。
+  // 2. 定义 preventDefault 和 stopPropagation 方法。
+  // 3. 保证兼容性 (IE9, Safari)
   function SyntheticBaseEvent(
     reactName: string | null,
     reactEventType: string,
     targetInst: Fiber,
-    nativeEvent: {[propName: string]: mixed},
+    nativeEvent: { [propName: string]: mixed },
     nativeEventTarget: null | EventTarget,
   ) {
     this._reactName = reactName;
@@ -54,6 +68,8 @@ function createSyntheticEvent(Interface: EventInterfaceType) {
     this.target = nativeEventTarget;
     this.currentTarget = null;
 
+    // 复制一些 原生Event的数据 到 React合成事件实例 上，如 clientX, clientY, shiftKey, timestamp 等
+    // this 就是 React 合成事件 SyntheticBaseEvent
     for (const propName in Interface) {
       if (!Interface.hasOwnProperty(propName)) {
         continue;
@@ -80,7 +96,9 @@ function createSyntheticEvent(Interface: EventInterfaceType) {
   }
 
   assign(SyntheticBaseEvent.prototype, {
-    preventDefault: function() {
+
+    // 自定义阻止默认行为函数
+    preventDefault: function () {
       this.defaultPrevented = true;
       const event = this.nativeEvent;
       if (!event) {
@@ -88,15 +106,21 @@ function createSyntheticEvent(Interface: EventInterfaceType) {
       }
 
       if (event.preventDefault) {
+        // 如果原生 Event 实例上有 perventDefault，那就使用原生的。
         event.preventDefault();
         // $FlowFixMe - flow is not aware of `unknown` in IE
       } else if (typeof event.returnValue !== 'unknown') {
+        // 兼容 IE
         event.returnValue = false;
       }
       this.isDefaultPrevented = functionThatReturnsTrue;
     },
 
-    stopPropagation: function() {
+    // 自定义阻止冒泡函数
+    // 1. 先调用一下原生的的 e.stopPropagation 方法，阻止原生冒泡。
+    // 2. 然后给合成事件实例的 isPropagationStopped 赋值一个永远返回 true 的函数。
+    // 在 processDispatchQueueItemsInOrder 方法中会遍历 事件冒泡的 listeners，期间会执行 isPropagationStopped 函数以检查，如果返回 true, 说明开发者从这个 listener 开始阻止冒泡，所以直接 return 了，后续的 listener 都不会执行。
+    stopPropagation: function () {
       const event = this.nativeEvent;
       if (!event) {
         return;
@@ -122,7 +146,7 @@ function createSyntheticEvent(Interface: EventInterfaceType) {
      * them back into the pool. This allows a way to hold onto a reference that
      * won't be added back into the pool.
      */
-    persist: function() {
+    persist: function () {
       // Modern event system doesn't use pooling.
     },
 
@@ -144,7 +168,7 @@ const EventInterface = {
   eventPhase: 0,
   bubbles: 0,
   cancelable: 0,
-  timeStamp: function(event) {
+  timeStamp: function (event) {
     return event.timeStamp || Date.now();
   },
   defaultPrevented: 0,
@@ -195,7 +219,7 @@ const MouseEventInterface: EventInterfaceType = {
   getModifierState: getEventModifierState,
   button: 0,
   buttons: 0,
-  relatedTarget: function(event) {
+  relatedTarget: function (event) {
     if (event.relatedTarget === undefined)
       return event.fromElement === event.srcElement
         ? event.toElement
@@ -203,14 +227,14 @@ const MouseEventInterface: EventInterfaceType = {
 
     return event.relatedTarget;
   },
-  movementX: function(event) {
+  movementX: function (event) {
     if ('movementX' in event) {
       return event.movementX;
     }
     updateMouseMovementPolyfillState(event);
     return lastMovementX;
   },
-  movementY: function(event) {
+  movementY: function (event) {
     if ('movementY' in event) {
       return event.movementY;
     }
@@ -263,7 +287,7 @@ export const SyntheticAnimationEvent = createSyntheticEvent(
  */
 const ClipboardEventInterface: EventInterfaceType = {
   ...EventInterface,
-  clipboardData: function(event) {
+  clipboardData: function (event) {
     return 'clipboardData' in event
       ? event.clipboardData
       : window.clipboardData;
@@ -434,7 +458,7 @@ const KeyboardEventInterface = {
   locale: 0,
   getModifierState: getEventModifierState,
   // Legacy Interface
-  charCode: function(event) {
+  charCode: function (event) {
     // `charCode` is the result of a KeyPress event and represents the value of
     // the actual printable character.
 
@@ -445,7 +469,7 @@ const KeyboardEventInterface = {
     }
     return 0;
   },
-  keyCode: function(event) {
+  keyCode: function (event) {
     // `keyCode` is the result of a KeyDown/Up event and represents the value of
     // physical keyboard key.
 
@@ -458,7 +482,7 @@ const KeyboardEventInterface = {
     }
     return 0;
   },
-  which: function(event) {
+  which: function (event) {
     // `which` is an alias for either `keyCode` or `charCode` depending on the
     // type of the event.
     if (event.type === 'keypress') {
@@ -538,19 +562,19 @@ const WheelEventInterface = {
       ? event.deltaX
       : // Fallback to `wheelDeltaX` for Webkit and normalize (right is positive).
       'wheelDeltaX' in event
-      ? -event.wheelDeltaX
-      : 0;
+        ? -event.wheelDeltaX
+        : 0;
   },
   deltaY(event) {
     return 'deltaY' in event
       ? event.deltaY
       : // Fallback to `wheelDeltaY` for Webkit and normalize (down is positive).
       'wheelDeltaY' in event
-      ? -event.wheelDeltaY
-      : // Fallback to `wheelDelta` for IE<9 and normalize (down is positive).
-      'wheelDelta' in event
-      ? -event.wheelDelta
-      : 0;
+        ? -event.wheelDeltaY
+        : // Fallback to `wheelDelta` for IE<9 and normalize (down is positive).
+        'wheelDelta' in event
+          ? -event.wheelDelta
+          : 0;
   },
   deltaZ: 0,
 

@@ -7,27 +7,27 @@
  * @flow
  */
 
-import type {DOMEventName} from './DOMEventNames';
+import type { DOMEventName } from './DOMEventNames';
 import {
   type EventSystemFlags,
   SHOULD_NOT_DEFER_CLICK_FOR_FB_SUPPORT_MODE,
   IS_LEGACY_FB_SUPPORT_MODE,
   SHOULD_NOT_PROCESS_POLYFILL_EVENT_PLUGINS,
 } from './EventSystemFlags';
-import type {AnyNativeEvent} from './PluginModuleType';
+import type { AnyNativeEvent } from './PluginModuleType';
 import type {
   KnownReactSyntheticEvent,
   ReactSyntheticEvent,
 } from './ReactSyntheticEventType';
-import type {Fiber} from 'react-reconciler/src/ReactInternalTypes';
+import type { Fiber } from 'react-reconciler/src/ReactInternalTypes';
 
-import {allNativeEvents} from './EventRegistry';
+import { allNativeEvents } from './EventRegistry';
 import {
   IS_CAPTURE_PHASE,
   IS_EVENT_HANDLE_NON_MANAGED_NODE,
   IS_NON_DELEGATED,
 } from './EventSystemFlags';
-import {isReplayingEvent} from './CurrentReplayingEvent';
+import { isReplayingEvent } from './CurrentReplayingEvent';
 
 import {
   HostRoot,
@@ -43,10 +43,10 @@ import {
   getEventListenerSet,
   getEventHandlerListeners,
 } from '../client/ReactDOMComponentTree';
-import {COMMENT_NODE} from '../shared/HTMLNodeType';
-import {batchedUpdates} from './ReactDOMUpdateBatching';
+import { COMMENT_NODE } from '../shared/HTMLNodeType';
+import { batchedUpdates } from './ReactDOMUpdateBatching';
 import getListener from './getListener';
-import {passiveBrowserEventsSupported} from './checkPassiveEvents';
+import { passiveBrowserEventsSupported } from './checkPassiveEvents';
 
 import {
   enableLegacyFBSupport,
@@ -57,8 +57,8 @@ import {
   invokeGuardedCallbackAndCatchFirstError,
   rethrowCaughtError,
 } from 'shared/ReactErrorUtils';
-import {DOCUMENT_NODE} from '../shared/HTMLNodeType';
-import {createEventListenerWrapperWithPriority} from './ReactDOMEventListener';
+import { DOCUMENT_NODE } from '../shared/HTMLNodeType';
+import { createEventListenerWrapperWithPriority } from './ReactDOMEventListener';
 import {
   removeEventListener,
   addEventCaptureListener,
@@ -74,13 +74,13 @@ import * as SimpleEventPlugin from './plugins/SimpleEventPlugin';
 
 type DispatchListener = {|
   instance: null | Fiber,
-  listener: Function,
-  currentTarget: EventTarget,
+    listener: Function,
+      currentTarget: EventTarget,
 |};
 
 type DispatchEntry = {|
   event: ReactSyntheticEvent,
-  listeners: Array<DispatchListener>,
+    listeners: Array < DispatchListener >,
 |};
 
 export type DispatchQueue = Array<DispatchEntry>;
@@ -231,6 +231,13 @@ function executeDispatch(
   event.currentTarget = null;
 }
 
+/**
+ * 按照冒泡/捕获的规则，处理 dispatchListeners。
+ * 
+ * @param {*} event React合成事件实例
+ * @param {*} dispatchListeners 从触发 onClick 事件开始往上到 rootFiber, 收集到的所有监听 onClick 的 fiber 的监听器
+ * @param {*} inCapturePhase 现在是否是捕获阶段
+ */
 function processDispatchQueueItemsInOrder(
   event: ReactSyntheticEvent,
   dispatchListeners: Array<DispatchListener>,
@@ -238,8 +245,9 @@ function processDispatchQueueItemsInOrder(
 ): void {
   let previousInstance;
   if (inCapturePhase) {
+    // 如果是捕获阶段，反过来遍历，执行 listener 回调
     for (let i = dispatchListeners.length - 1; i >= 0; i--) {
-      const {instance, currentTarget, listener} = dispatchListeners[i];
+      const { instance, currentTarget, listener } = dispatchListeners[i];
       if (instance !== previousInstance && event.isPropagationStopped()) {
         return;
       }
@@ -247,8 +255,9 @@ function processDispatchQueueItemsInOrder(
       previousInstance = instance;
     }
   } else {
+    // 如果是冒泡阶段，正序遍历，执行 listener 回调
     for (let i = 0; i < dispatchListeners.length; i++) {
-      const {instance, currentTarget, listener} = dispatchListeners[i];
+      const { instance, currentTarget, listener } = dispatchListeners[i];
       if (instance !== previousInstance && event.isPropagationStopped()) {
         return;
       }
@@ -258,13 +267,15 @@ function processDispatchQueueItemsInOrder(
   }
 }
 
+
+// TODO: 遍历派发队列，执行合成事件的回调 (冒泡/捕获)
 export function processDispatchQueue(
   dispatchQueue: DispatchQueue,
   eventSystemFlags: EventSystemFlags,
 ): void {
   const inCapturePhase = (eventSystemFlags & IS_CAPTURE_PHASE) !== 0;
   for (let i = 0; i < dispatchQueue.length; i++) {
-    const {event, listeners} = dispatchQueue[i];
+    const { event, listeners } = dispatchQueue[i];
     processDispatchQueueItemsInOrder(event, listeners, inCapturePhase);
     //  event system doesn't use pooling.
   }
@@ -279,6 +290,7 @@ function dispatchEventsForPlugins(
   targetInst: null | Fiber,
   targetContainer: EventTarget,
 ): void {
+  // 获取触发事件的DOM结点
   const nativeEventTarget = getEventTarget(nativeEvent);
   const dispatchQueue: DispatchQueue = [];
   extractEvents(
@@ -301,7 +313,7 @@ export function listenToNonDelegatedEvent(
     if (!nonDelegatedEvents.has(domEventName)) {
       console.error(
         'Did not expect a listenToNonDelegatedEvent() call for "%s". ' +
-          'This is a bug in React. Please file an issue.',
+        'This is a bug in React. Please file an issue.',
         domEventName,
       );
     }
@@ -332,7 +344,7 @@ export function listenToNativeEvent(
     if (nonDelegatedEvents.has(domEventName) && !isCapturePhaseListener) {
       console.error(
         'Did not expect a listenToNativeEvent() call for "%s" in the bubble phase. ' +
-          'This is a bug in React. Please file an issue.',
+        'This is a bug in React. Please file an issue.',
         domEventName,
       );
     }
@@ -445,7 +457,7 @@ function addTrappedEventListener(
   targetContainer =
     enableLegacyFBSupport && isDeferredListenerForLegacyFBSupport
       ? (targetContainer: any).ownerDocument
-      : targetContainer;
+  : targetContainer;
 
   let unsubscribeListener;
   // When legacyFBSupport is enabled, it's for when we
@@ -461,7 +473,7 @@ function addTrappedEventListener(
   // need support for such browsers.
   if (enableLegacyFBSupport && isDeferredListenerForLegacyFBSupport) {
     const originalListener = listener;
-    listener = function(...p) {
+    listener = function (...p) {
       removeEventListener(
         targetContainer,
         domEventName,
@@ -533,6 +545,7 @@ function isMatchingRootContainer(
   );
 }
 
+// by ronny
 export function dispatchEventForPluginEventSystem(
   domEventName: DOMEventName,
   eventSystemFlags: EventSystemFlags,
@@ -576,6 +589,8 @@ export function dispatchEventForPluginEventSystem(
       // root boundaries that match that of our current "rootContainer".
       // If we find that "rootContainer", we find the parent fiber
       // sub-tree for that root and make that our ancestor instance.
+
+      // node 是触发 click 事件的 button 的 fiber 结点
       let node = targetInst;
 
       mainLoop: while (true) {
@@ -583,9 +598,12 @@ export function dispatchEventForPluginEventSystem(
           return;
         }
         const nodeTag = node.tag;
+        // 向上找到 rootFiber 或 Portal 结点
         if (nodeTag === HostRoot || nodeTag === HostPortal) {
+          // 拿到 div#root
           let container = node.stateNode.containerInfo;
           if (isMatchingRootContainer(container, targetContainerNode)) {
+            // click 事件到这里跳出了
             break;
           }
           if (nodeTag === HostPortal) {
@@ -656,6 +674,15 @@ function createDispatchListener(
   };
 }
 
+/**
+ * 
+ * @param {*} targetFiber 触发 onClick 事件的 button fiber
+ * @param {*} reactName onClick
+ * @param {*} nativeEventType click
+ * @param {*} inCapturePhase 是否是捕获阶段
+ * @param {*} accumulateTargetOnly 
+ * @param {*} nativeEvent 原生事件源
+ */
 export function accumulateSinglePhaseListeners(
   targetFiber: Fiber | null,
   reactName: string | null,
@@ -672,9 +699,15 @@ export function accumulateSinglePhaseListeners(
   let lastHostComponent = null;
 
   // Accumulate all instances and listeners via the target -> root path.
+  // 从 button 这个 fiber 开始，一路往上窜，直到到达 rootFiber。
+  // TODO: 冒泡？
   while (instance !== null) {
-    const {stateNode, tag} = instance;
+    // stateNode: button 原生DOM元素
+    // tag: HostComponent
+    const { stateNode, tag } = instance;
+
     // Handle listeners that are on HostComponents (i.e. <div>)
+    // 处理原生组件上的监听器
     if (tag === HostComponent && stateNode !== null) {
       lastHostComponent = stateNode;
 
@@ -702,6 +735,7 @@ export function accumulateSinglePhaseListeners(
       }
 
       // Standard React on* listeners, i.e. onClick or onClickCapture
+      // React合成事件的写法，如 onClick 或 onClickCapture
       if (reactEventName !== null) {
         const listener = getListener(instance, reactEventName);
         if (listener != null) {
@@ -784,7 +818,7 @@ export function accumulateTwoPhaseListeners(
 
   // Accumulate all instances and listeners via the target -> root path.
   while (instance !== null) {
-    const {stateNode, tag} = instance;
+    const { stateNode, tag } = instance;
     // Handle listeners that are on HostComponents (i.e. <div>)
     if (tag === HostComponent && stateNode !== null) {
       const currentTarget = stateNode;
@@ -879,7 +913,7 @@ function accumulateEnterLeaveListenersForEvent(
     if (instance === common) {
       break;
     }
-    const {alternate, stateNode, tag} = instance;
+    const { alternate, stateNode, tag } = instance;
     if (alternate !== null && alternate === common) {
       break;
     }
@@ -904,7 +938,7 @@ function accumulateEnterLeaveListenersForEvent(
     instance = instance.return;
   }
   if (listeners.length !== 0) {
-    dispatchQueue.push({event, listeners});
+    dispatchQueue.push({ event, listeners });
   }
 }
 

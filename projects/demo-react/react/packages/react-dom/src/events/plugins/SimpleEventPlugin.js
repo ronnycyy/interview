@@ -7,11 +7,11 @@
  * @flow
  */
 
-import type {DOMEventName} from '../../events/DOMEventNames';
-import type {Fiber} from 'react-reconciler/src/ReactInternalTypes';
-import type {AnyNativeEvent} from '../../events/PluginModuleType';
-import type {DispatchQueue} from '../DOMPluginEventSystem';
-import type {EventSystemFlags} from '../EventSystemFlags';
+import type { DOMEventName } from '../../events/DOMEventNames';
+import type { Fiber } from 'react-reconciler/src/ReactInternalTypes';
+import type { AnyNativeEvent } from '../../events/PluginModuleType';
+import type { DispatchQueue } from '../DOMPluginEventSystem';
+import type { EventSystemFlags } from '../EventSystemFlags';
 
 import {
   SyntheticEvent,
@@ -42,13 +42,24 @@ import {
   accumulateSinglePhaseListeners,
   accumulateEventHandleNonManagedNodeListeners,
 } from '../DOMPluginEventSystem';
-import {IS_EVENT_HANDLE_NON_MANAGED_NODE} from '../EventSystemFlags';
+import { IS_EVENT_HANDLE_NON_MANAGED_NODE } from '../EventSystemFlags';
 
 import getEventCharCode from '../getEventCharCode';
-import {IS_CAPTURE_PHASE} from '../EventSystemFlags';
+import { IS_CAPTURE_PHASE } from '../EventSystemFlags';
 
-import {enableCreateEventHandleAPI} from 'shared/ReactFeatureFlags';
+import { enableCreateEventHandleAPI } from 'shared/ReactFeatureFlags';
 
+/**
+ * 提取事件。拿到合成事件实例，以及监听的函数，放到一个队列中 dispatchQueue。
+ * 
+ * @param {*} dispatchQueue 
+ * @param {*} domEventName 
+ * @param {*} targetInst 
+ * @param {*} nativeEvent 
+ * @param {*} nativeEventTarget 
+ * @param {*} eventSystemFlags 
+ * @param {*} targetContainer 
+ */
 function extractEvents(
   dispatchQueue: DispatchQueue,
   domEventName: DOMEventName,
@@ -106,6 +117,7 @@ function extractEvents(
     case 'mouseout':
     case 'mouseover':
     case 'contextmenu':
+      // onClick 最终拿到的合成事件对象是这里的
       SyntheticEventCtor = SyntheticMouseEvent;
       break;
     case 'drag':
@@ -179,7 +191,8 @@ function extractEvents(
         nativeEvent,
         nativeEventTarget,
       );
-      dispatchQueue.push({event, listeners});
+      // 拿到合成事件实例 和 监听器
+      dispatchQueue.push({ event, listeners });
     }
   } else {
     // Some events don't bubble in the browser.
@@ -194,6 +207,8 @@ function extractEvents(
       // This is a breaking change that can wait until React 18.
       domEventName === 'scroll';
 
+    // 触发 onClick 事件，走到这里，得到监听器列表 listeners:
+    // [{子}, {父}, {祖父}] 这样排列的三个监听对象: { instance: Fiber, listener: 监听器, currentTarget: 触发事件的DOM结点 }
     const listeners = accumulateSinglePhaseListeners(
       targetInst,
       reactName,
@@ -203,17 +218,21 @@ function extractEvents(
       nativeEvent,
     );
     if (listeners.length > 0) {
+      // 拿到合成事件源实例
       // Intentionally create event lazily.
+      // click 事件对象，是通过 new 一个 SyntheticBaseEvent 出来的。
       const event = new SyntheticEventCtor(
-        reactName,
-        reactEventType,
+        reactName,  // onClick
+        reactEventType,  // click
         null,
-        nativeEvent,
-        nativeEventTarget,
+        nativeEvent,  // PointerEvent
+        nativeEventTarget,  // button
       );
-      dispatchQueue.push({event, listeners});
+
+      // 合成事件实例 和 监听器，放入更新队列
+      dispatchQueue.push({ event, listeners });
     }
   }
 }
 
-export {registerSimpleEvents as registerEvents, extractEvents};
+export { registerSimpleEvents as registerEvents, extractEvents };
