@@ -23,11 +23,20 @@
 // import EventDemo1 from './components/EventDemo1';
 // import EventDemo2 from './components/EventDemo2';
 // import EventDemo3 from './components/EventDemo3';
-import EventDemo4 from './components/EventDemo4';
+// import EventDemo4 from './components/EventDemo4';
+// import EventDemo5 from './components/EventDemo5';
+// import EventDemo6 from './components/EventDemo6';
+import EventDemo7 from './components/EventDemo7';
+// import EventDemo8 from './components/EventDemo8';
 
 function App() {
   return (
-    <EventDemo4 />
+    // <h1>App</h1>
+    // <EventDemo8 />
+    <EventDemo7 />
+    // <EventDemo6 />
+    // <EventDemo5 />
+    // <EventDemo4 />
     // <EventDemo3 />
     // <EventDemo2 />
     // <EventDemo1 />
