@@ -63,7 +63,7 @@ function childReconciler(shouldTrackSideEffects: boolean) {
 
   /**
    * 
-   * 多结点 DIFF
+   * 单结点 DIFF
    * 
    * 🔥🔥🔥 所谓单/多结点 DIFF，指的是新结点！新结点单个就是单结点diff，新结点多个就是多结点diff!
    * 

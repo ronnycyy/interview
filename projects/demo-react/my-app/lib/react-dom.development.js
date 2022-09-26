@@ -15710,10 +15710,19 @@ if (process.env.NODE_ENV !== "production") {
         return created;
       }
 
+      /**
+       * diff算法 新结点是单结点
+       * 
+       * @param {*} returnFiber 新产生 fiber 的 父结点 (workInProgress)
+       * @param {*} currentFirstChild 老 fiber 的大儿子 (current.child)
+       * @param {*} element 要渲染的虚拟DOM (单个ReactElement)
+       * @param {*} lanes 
+       */
       function reconcileSingleElement(returnFiber, currentFirstChild, element, lanes) {
         var key = element.key;
         var child = currentFirstChild;
 
+        // 遍历同一层
         while (child !== null) {
           // TODO: If key === null and child.key === null, then this only applies to
           // the first item in the list.
@@ -15723,6 +15732,7 @@ if (process.env.NODE_ENV !== "production") {
             if (elementType === REACT_FRAGMENT_TYPE) {
               if (child.tag === Fragment) {
                 deleteRemainingChildren(returnFiber, child.sibling);
+                // 复用这个结点
                 var existing = useFiber(child, element.props.children);
                 existing.return = returnFiber;
 
@@ -15742,6 +15752,7 @@ if (process.env.NODE_ENV !== "production") {
                 typeof elementType === 'object' && elementType !== null && elementType.$$typeof === REACT_LAZY_TYPE && resolveLazy(elementType) === child.type) {
                 deleteRemainingChildren(returnFiber, child.sibling);
 
+                // key相同、type相同，复用这个 fiber 结点
                 var _existing = useFiber(child, element.props);
 
                 _existing.ref = coerceRef(returnFiber, child, element);

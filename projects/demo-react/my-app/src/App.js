@@ -26,14 +26,24 @@
 // import EventDemo4 from './components/EventDemo4';
 // import EventDemo5 from './components/EventDemo5';
 // import EventDemo6 from './components/EventDemo6';
-import EventDemo7 from './components/EventDemo7';
+// import EventDemo7 from './components/EventDemo7';
 // import EventDemo8 from './components/EventDemo8';
+// import ProfilerDemo from './components/ProfilerDemo';
+// import ClassDemo1 from './components/ClassDemo1';
+// import DiffDemo1 from './components/DiffDemo1';
+// import DiffDemo2 from './components/DiffDemo2';
+import SSRDemo1 from './components/SSRDemo1';
 
 function App() {
   return (
+    <SSRDemo1 />
+    // <DiffDemo2 />
+    // <DiffDemo1 />
+    // <ClassDemo1 />
+    // <ProfilerDemo />
     // <h1>App</h1>
     // <EventDemo8 />
-    <EventDemo7 />
+    // <EventDemo7 />
     // <EventDemo6 />
     // <EventDemo5 />
     // <EventDemo4 />
