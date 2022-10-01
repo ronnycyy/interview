@@ -31,6 +31,7 @@
     const renderer = new THREE.WebGLRenderer();
     renderer.setClearColor(new THREE.Color(0xEEEEEE));
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
 
     // 设置辅助测试工具
     const axes = new THREE.AxesHelper(20);
@@ -48,29 +49,62 @@
     plane.position.x = 10;
     plane.position.y = 0;
     plane.position.z = 0;
+    plane.receiveShadow = true;
     // 添加到平面里
     scene.add(plane);
 
     // 设置立方体
     const geometry = new THREE.BoxGeometry( 10, 10, 10 );
     // 材质
-    const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+    const material = new THREE.MeshLambertMaterial( {color: 0x00ff00} );
     const cube = new THREE.Mesh( geometry, material );
-    cube.position.x = 20;
-    cube.position.y = 10;
+    cube.position.x = -10;
+    cube.position.y = 5;
+    cube.position.z = 5;
+    cube.castShadow = true;
     scene.add( cube );
 
     // 加一个球体
     const geometry1 = new THREE.SphereGeometry( 5, 32, 16 );
-    const material1 = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+    const material1 = new THREE.MeshLambertMaterial( { color: 0xffff00 } );
     const sphere = new THREE.Mesh( geometry1, material1 );
     sphere.position.x = 0;
-    sphere.position.y = 10;
+    sphere.position.y = 5;
+    sphere.castShadow = true;
     scene.add( sphere );
+
+    // 添加光源
+    const light = new THREE.SpotLight(0xFFFFFF);
+    // 启用阴影
+    light.castShadow = true;
+    light.position.set(-10,40,-10);
+    scene.add(light);
+
+    // 每一帧都执行一次 render
+    function render() {
+      rotateCube();
+      bounceSphere();
+      requestAnimationFrame(render);
+      renderer.render(scene, camera);
+    }
+
+    function rotateCube() {
+      cube.rotation.x += 0.02;
+      cube.rotation.y += 0.02;
+      cube.rotation.z += 0.02;
+    }
+
+    let step = 0;
+    function bounceSphere() {
+      step += 0.04;
+      sphere.position.x = 20 + (10 * Math.cos(step));
+      sphere.position.y = 2 + (10 * Math.abs(Math.sin(step)));
+    }
 
     // 将 render 的输出挂载到 body
     document.body.appendChild(renderer.domElement);
-    renderer.render(scene, camera);
+    // 动画
+    render();
   </script>
 </body>
 
