@@ -21,7 +21,7 @@ class HeapGreater {
     this.indexMap = new Map();
     // 堆的大小
     this.heapSize = 0;
-    // 比较器
+    // 比较器 Function
     this.comp = c;
   }
   
@@ -109,7 +109,11 @@ class HeapGreater {
   
   // 返回堆上的所有元素
   getAllElements() {
-    return JSON.parse(JSON.stringify(this.heap));
+    const ans = [];
+    for (let i = 0, len = this.heap.length; i < len; i++) {
+      ans.push(this.heap[i]);
+    }
+    return ans;
   }
   
   // 往上窜
@@ -134,7 +138,7 @@ class HeapGreater {
     let left = index * 2 + 1;
     while (left < this.heapSize) {
       // 找最优孩子
-      // 右孩子不越界 并且 右孩子优于父结点，那就是右孩子，否则是左孩子。
+      // `右孩子不越界`并且`右孩子优于左孩子`，那就是右孩子，否则是左孩子。
       let best = left+1 < this.heapSize && this.isBetter(left+1, left) ? left+1 : left;
       // 最优孩子和父结点比较，找到最优结点
       best = this.isBetter(best, index) ? best : index;
@@ -152,8 +156,8 @@ class HeapGreater {
   
   // i 是否优于 j, 也就是说，i 是否应该在 j 上面
   isBetter(i, j) {
-    // 通过用户提供的 comp 来比较，可能是通过属性比较，比如 id,age,score 等。如果结果小于 0，说明`i胜出`。
-    return this.comp.compare(this.heap[i], this.heap[j]) < 0;
+    // 通过用户提供的 comp 来比较，传入的是 2 个结点，但是是通过属性来比较，比如 id,age,score,buy 等。如果结果小于 0，说明`i胜出`。
+    return this.comp(this.heap[i], this.heap[j]) < 0;
   }
   
   // 交换堆中两个 node 的位置, 同时更新反向索引表
@@ -166,3 +170,32 @@ class HeapGreater {
     this.indexMap.set(n2, i);
   }
 }
+
+/**
+ * Node.js 用户源码模块载入流程:
+ * 1. 开发者调用 require() 这在某种意义上等同于调用 Module._load
+ * 2. 闭包化对应文件的源码，并传入相关参数执行（若有缓存，则直接返回）
+ * 3. 通常在执行过程中 module.exports 或者 exports 会被赋值
+ * 4. Module.prototype._load 在最后返回这个模块的 exports 给上游
+*/
+module.exports = HeapGreater;
+
+/**
+ * Module._load: (用户require)
+ * 1. 生成文件路径
+ * 2. 从 Module._cache 中检查是否有缓存:
+ *  2.1 有缓存，直接返回 cacheModule.exports
+ *  2.2 无缓存，检查是否是内置模块:
+ *    2.2.1 是内置模块，返回 NativeModule.require(filename) 的调用结果
+ *    2.2.2 非内置模块，调用 new Module(..) 实例化一个模块，标记是否入口模块，存入缓存 Module._cache[filename] = module,
+ *          尝试加载模块(调用tryModuleLoaded()，本质还是执行 module.load)，返回 module.exports, 也就是用户写的 module.exports = xxx。
+*/
+
+/**
+ * 闭包化源码:
+ * (function(exports, require, module, __filename, __dirname) {
+ *   module.exports = `${require("foo")} ${__dirname} hello`;
+ * });
+ * 这里的 require 就是经包装后的 Module.prototype.require, 在某种意义上等同于调用 Module._load。
+ * 这里的 module 是 Module 类的对象实例，所以对 module.exports 赋值实际上是对这个传入的 module 对象赋值。
+*/
