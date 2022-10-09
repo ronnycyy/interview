@@ -1,3 +1,5 @@
+const ListNode = require('./ListNode');
+
 /**
  * 删除单链表中的某个结点
  * @param {ListNode} head 原链表头
