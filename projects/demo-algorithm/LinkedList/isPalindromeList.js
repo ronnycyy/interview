@@ -12,9 +12,7 @@
  * @param {ListNode} head  链表头结点
  * @return {boolean} isPalindrome 是否回文
  */
-function isPalindromeList(head) {
-
-}
+function isPalindromeList(head) {}
 
 // 方法二 (面试，和面试官聊)
 // 1. 找到链表的中点: 如果是奇数返回`中点`，如果是偶数返回`上中点`。
