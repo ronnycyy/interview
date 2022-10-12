@@ -1,5 +1,5 @@
 // 是否是满二叉树
-function isFill(root) {
+function tree_dp_isFill(root) {
   const { height, nums } = proc(root);
   // 满足 结点数量 = 2^高度 - 1 的，就是满二叉树，否则不是。
   return (1 << height) - 1 === nums;

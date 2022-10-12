@@ -1,5 +1,5 @@
 // 是否是平衡二叉树
-function isBalanceTree(head) {
+function tree_dp_isBalanceTree(head) {
   return proc(head).isBalance;
 }
 

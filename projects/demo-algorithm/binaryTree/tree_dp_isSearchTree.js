@@ -1,5 +1,5 @@
 // 是否是搜索二叉树
-function isSearchTree(head) {
+function tree_dp_isSearchTree(head) {
   return proc(head).isSearch;
 }
 class Info {
