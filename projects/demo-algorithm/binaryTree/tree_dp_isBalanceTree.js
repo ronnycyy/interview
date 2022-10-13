@@ -1,51 +1,42 @@
-// 是否是平衡二叉树
-function tree_dp_isBalanceTree(head) {
-  return proc(head).isBalance;
-}
+/**
+ * 判断一棵树是否是平衡二叉树
+ *
+ * @param {TreeNode} root 二叉树的头结点
+ * @return {boolean} 是否是平衡二叉树
+ */
+function isBalanced (root) {
+  return proc(root).isBalanced;
+};
 
 /**
- * 子树的信息
- * @param {boolean} isBalance 是否是平衡二叉树
- * @param {number} height 高度
+ * 递归含义: 以 node 为头的二叉树，返回 Info 结构
+ * @param node 二叉树的头结点
+ * @returns {Info} 要上交给父级的信息结构
  */
-class Info {
-  constructor(isBalance, height) {
-    this.isBalance = isBalance;
-    this.height = height;
-  }
-}
-
-/**
- * 返回每棵子树的信息
- * @param {Node} head 子树头
- * @return {Info} 子树的信息
- */
-function proc(head) {
-  if (!head) {
-    // 空树是平衡二叉树 (这么定义代码好写)
-    // 空树的高度是0
-    return new Info(true, 0);
+function proc(node) {
+  if (!node) {
+    // base case: 定义 null 是一棵平衡二叉树且高度为0，便于上游处理
+    return new Info(0, true);
   }
   // 向左右子树要信息
-  const leftInfo = proc(head.left);
-  const rightInfo = proc(head.right);
-
-  // 我也得返回 Info，整个递归才能连起来，所以求:
-  // 1. 我是不是平衡二叉树
-  // 2. 我的高度
-
-  // 1. 左右子树都平衡，并且高度差不超过1，我就是平衡二叉树
-  let isBalance = false;
-  if (leftInfo.isBalance && rightInfo.isBalance && Math.abs(leftInfo.height - rightInfo.height) < 2) {
-    isBalance = true;
-  }
-  // 2. 两棵子树中较高的高度+1，就是我的高度。
+  const leftInfo = proc(node.left);
+  const rightInfo = proc(node.right);
+  // 构造出自己的信息
+  // 自己的高度 = 左右子树中较高的那个的高度+1
   const height = Math.max(leftInfo.height, rightInfo.height) + 1;
-
-  // 返回我的信息给父级，整个递归连起来了
-  return new Info(isBalance, height);
+  // 自己是否平衡 = 左平衡 并且 右平衡 并且 左右高度差不超过1
+  const isBalanced = leftInfo.isBalanced && rightInfo.isBalanced && Math.abs(leftInfo.height - rightInfo.height) <= 1;
+  // 返回给自己的父结点
+  return new Info(height, isBalanced);
 }
 
-
-
-
+/**
+ * 定义子树向父结点上交的信息
+ * @param height 整棵子树的高度
+ * @param isBalanced 子树是否平衡
+ * @constructor 信息结构
+ */
+function Info(height, isBalanced) {
+  this.height = height;
+  this.isBalanced = isBalanced;
+}
