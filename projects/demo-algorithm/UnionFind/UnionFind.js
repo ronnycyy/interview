@@ -8,7 +8,7 @@ function Node(v) {
 }
 
 /**
- * 并查集
+ * 并查集 UnionSet<V>: 支持集合`合并`和`查询`的结构
  * 这是个神器🏆，能解决一大片的问题! 你被火车🚄撞了都不能忘的!!
  *
  * 两个优化:
@@ -133,4 +133,14 @@ class UnionSet {
       this.sizeMap.delete(small);
     }
   }
+  
+  /**
+   * 返回集合的个数
+   * @returns {number} 集合个数
+   */
+  sets() {
+    return this.sizeMap.size;
+  }
 }
+
+module.exports = UnionSet;
